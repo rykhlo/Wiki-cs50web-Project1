@@ -1,3 +1,5 @@
+import random
+
 from django.shortcuts import render
 from django import forms
 from django.http import HttpResponseRedirect
@@ -6,7 +8,6 @@ from django.urls import reverse
 from . import util
 
 from markdown2 import Markdown
-
 
 
 class SearchForm(forms.Form):
@@ -93,14 +94,6 @@ def create(request):
                 return render(request, "encyclopedia/error.html", contex)
 
             util.save_entry(form_title, form_text_converted)
-            # page = util.get_entry(form_title)
-            # page_converted = Markdown().convert(page)
-            # contex = {
-            #     "title" : form_title,
-            #     "page" : page_converted,
-            #     "form" : SearchForm(),
-            # }
-            # return render(request, "encyclopedia/entry.html", contex)
             return HttpResponseRedirect(reverse("encyclopedia:index") + f"wiki/{form_title}")
 
 
@@ -110,5 +103,6 @@ def create(request):
         "CreateForm" : CreateForm(),
     })
 
-def random(request):
-    return
+def random_page(request):
+    random_page = random.choice(util.list_entries())
+    return HttpResponseRedirect(reverse("encyclopedia:index") + f"wiki/{random_page}")

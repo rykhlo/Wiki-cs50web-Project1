@@ -20,6 +20,9 @@ class CreateForm(forms.Form):
 
     text = forms.CharField(widget=forms.Textarea(attrs={'placeholder': "Enter the page's content"}))
 
+class EditForm(forms.Form):
+    text = forms.CharField(widget=forms.Textarea(attrs={'placeholder': "Edit the page's content"}))    
+
 def index(request):
     if request.method == "POST":
         form = SearchForm(request.POST)
@@ -83,7 +86,6 @@ def create(request):
         if form.is_valid():
             form_title = form.cleaned_data["title"]
             form_text = form.cleaned_data["text"]
-            form_text_converted = Markdown().convert(form_text)
 
             #check if encyclopedia entry already exists 
             if form_title in util.list_entries():
@@ -93,7 +95,7 @@ def create(request):
                 }
                 return render(request, "encyclopedia/error.html", contex)
 
-            util.save_entry(form_title, form_text_converted)
+            util.save_entry(form_title, form_text)
             return HttpResponseRedirect(reverse("encyclopedia:index") + f"wiki/{form_title}")
 
 
@@ -106,3 +108,22 @@ def create(request):
 def random_page(request):
     random_page = random.choice(util.list_entries())
     return HttpResponseRedirect(reverse("encyclopedia:index") + f"wiki/{random_page}")
+
+
+def entry_edit(request, title):
+    if request.method == "GET":
+        page = util.get_entry(title)
+        contex = {
+            "title" : title,
+            "form" : EditForm(initial={'text': page}),
+        }
+        return render(request, "encyclopedia/entry_edit.html", contex)
+
+    if request.method == "POST":
+        form = EditForm(request.POST)
+        if form.is_valid():
+            form_text = form.cleaned_data["text"]
+            util.save_entry(title, form_text)
+            return HttpResponseRedirect(reverse("encyclopedia:index") + f"wiki/{title}")
+
+
